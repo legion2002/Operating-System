@@ -1,0 +1,58 @@
+-->  How to Compile and Run the program
+1) To compile the program, use the "make" command on a linux terminal
+2) You can use specific targets to pause the compilation at specific steps, the targets can be seen in the makefile.
+3) You can use the make clean command to delete all old . and .s files
+4) After successful compilation using the make command, the following files should be created - 
+- Q1_process.s
+- Q1_thread.s
+- process_final.out
+- thread_final.out
+5) You can use the ./process_final.out command to run the process based execution, and ./thread_final.out to run the thread based execution.
+NOTE: for successful execution, kindly make sure that student_record.csv is in the same folder as the rest of the files.
+
+--> System Calls
+Common System calls - 
+1) open - used to open a file in the programme, 
+was given two arguments - file path and O_RDONLY ( which indicates that we want to open the file for reading ), it returns a negative value in case of some error, and returns the file descriptor on successfull execution
+2) close - used to close an open file,
+the file descriptor is passed as argument, returns -1 in case there is some error in closing the file.
+
+3) read - used to read from an open file,
+arguments passed are first a file descriptor which points to the file we want to read from
+second the pointer to the buffer where we want to store the data we read
+third the size of the bytes that we want to read
+It returns a negative value in case some error occurs
+
+4) perror - used to give details about an error, a string message to describe the error has been passed as an argument. More details given in error handling.
+
+5) exit - used to exit from the current process, value 0 or EXIT_SUCCESS is passed in case the programme exits without any errors, in case of errors some error value is passed.
+
+For Q1_process - 
+1) fork -  it is used to create a child process from the current process. It returns 0 in the child process and the pid of the child in the parent process.
+No arguments needed to be passed for our use.
+It returns a negative value in case some error occurs.
+
+2) waitpid - it is used to wait for changes in the state of the child process, in our usage, we have used it to at the end of the parent process, and made the parent process wait for the child process to end.
+The arguments passed are the pid of the child process, the pointer to where the status of the child process will be stored, and in our case we have used the options argument as 0, since we just want to wait for a singular child process to end.
+it returns negative value if some error occurs.
+
+for Q1_thread - 
+1) pthread_create - it is used to create a new thread
+2) pthread_join - it is used to join the execution of 2 threads at some point in the execution. It can be thought of as an equivalent to waitpid for threads.
+
+3) pthread_exit - it is used to exit from a thread and terminate it.
+
+--> Error Handling
+Error Handling in this program was done through perror and exit functions
+After every system call the return value from that system call is checked.
+If the return value is indicative of some error, then the error details are displayed using the perror function, the perror function is also used to give a description of what error has occured.
+On finding any error in the program, after printing the perror, we use the exit system call to terminate the program. We pass "errno" in the exit function to indicate the termination status.
+
+--> Logic of the program
+1) For Q1_process, we read the file seperately 2 times using the read system call, we have specified a large enough buffer to accomodate any reasonable file.
+We parse through the file row wise using strtok, and then store these rows in an array.
+We then go through these rows in both the processes and then add the marks of the students, after checking if they belong to the correct section or not.
+We then use this assignment array to get the total marks of the students, we divide it by the number of children in that section to get the average.
+
+2) For Q1_thread, we use a different approach as reading from the same file using 2 different threads is very unstable. We first read through the file and store its contents in an array of type structures of Student.Once we have read through the file we then create two threads and then each of these threads, go throught the arraylist and add the marks of the students in the correct section. They pass this sum to a global variable.
+After the threads end their execution, the combined average is calculated in the parent thread. 

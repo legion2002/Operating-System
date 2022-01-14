@@ -1,0 +1,9 @@
+In this case NO deadlock will be present, as philosophers only need one fork to eat and one bowl to eat from.
+A deadlock can only arise when all of the philosophers are thinking, and none of them are able to eat.
+Since in this case our philosophers have sufficient forks i.e 5, there will always be atleast one philosopher who is eating.
+
+In the worst case scenario atleast 3 philosophers will have the forks according to the distribution - 2+2+1
+and the remaining philosophers would have 2 soup bowls
+Even in this case the philosophers with the forks would have 2 soup bowls left in the middle which they could eat from.
+
+Thus even in the worst case scenario there would be no deadlock.

@@ -1,0 +1,75 @@
+-->  How to Compile and Run the program
+1) To compile the program, use the "make" command on a linux terminal
+2) You can use specific targets like "assemble" and "compile" to make the program step-by-step
+3) You can use the make clean command to delete all old .out files
+4) After running "make", a final.out executable will be created. Use the command ./final.out to run the programme
+5) If you want to pass a specific 64 digit number to the B function, you can set the "a" variable in the A.c file. This function is set to - 4629771061636907072 by default
+
+--> Details of the program
+The program consists of 3 files - A.c B.asm & C.c
+NASM assembly is used to write and assemble the B.asm file.
+The A.c file contains the functions A() and main, B.asm contains funtion B() and C.c contains the function C()
+On entering any function X, "You are now in X function" is printed to stdout.
+
+--> Description of the Logic of implementation
+1) The A function - 
+The A function, passes a 64 bit integer variable of the type "int64_t" to the B function. I have accessed the B function by declaring B as global in the assembly file, and using the extern keyword in A.c
+The A function calls B and passes the argument "a" along with it, currently the return address from B is set to bring back the execution to A. 
+We know that in NASM assembly this return address will be the first thing that is stored in the stack frame for the B function.
+We will manipulate this stack in the B function to return to C instead fo A.
+
+2) The B function -
+In the B function, according to the NASM convention, the first argument that we have passed into B will be stored in the RDI resistor. 
+
+Storing the Number - 
+
+Our first task is to print this number as an 8 bit ASCII String. For this we have already reserved an unitialized memory space of 8 bytes in the .bss section using resb. 
+We have called a pointer to this memory location "number". 
+Once we enter the B function the first thing we do is to move the value from the RDI resistor to this memory space, by the command "mov [ number ], rdi".
+Upon moving this integer to this 8 byte memory space it is automatically converted into an ASCII type string of 8 characters.
+The logic for this conversion is as follows - 
+Each character is of one byte, and thus can take values from 0 to 255
+Suppose we have a 64 bit integer - 
+The binary value of this integer is - 4629771061636907072
+01000000 01000000 01000000 01000000 01000000 01000000 01000000 01000000
+On taking this 64 bit binary in 8 groups of 8 bits, each group can be represented as an ASCII character.
+In this case the group - 01000000, corresponds to the decimal value - 64, which corresponds to the ASCII value - @
+Thus the output that we obtain from printing this integer as an ASCII string is - @@@@@@@@
+
+Printing Things in Assembly - 
+
+We now print 2 things in the B function,
+1) The message "You are now in B function" - as we already know this string,
+we store and initialize it in the .data session using the - message:  db        "You are now in B function ", 10 command.
+The ",10" at the end of this command is for the newline character.
+
+2) The number 
+
+To print both of these things we use the write syscall, we first set it up by 
+
+mov rax, 1 ( This tells the syscall that it has to call the write function )
+mov rdi, 1 ( This tells the syscall that it has to write to STDOUT )
+mov rsi, message ( We put the value to be written in the rsi register )
+mov rdx, 27 ( This is the size of the message to be printed )
+syscall ( This calls the write syscall and performs the printing )
+
+NOTE: We do not need to push or store any registers like rdi etc. as we have already stored the values of rdi in our number memory space and the rest of the registers are caller saved.
+
+Returning to the C function - 
+
+To return to the C function instead of the A function, we use the "extern C" command to make the C function visible in the B.asm file.
+Then as we know that currently the stack pointer is pointing to the return address of the B function ( As we haven't pushed or popped anything from the stack yet )
+We remove this return address from the stack by using "pop r9",
+Now we simply add the address of the C function to the stack by using "push C"
+In doing so we have effectively replaced the return address pointing to A with a return address pointing to C.
+Now we just call the standard ret command, which takes the execution to the return address stored in the stack ( i.e C function ).
+You can see that the execution has gone to C, as "You are now in C function" is printed onto the console.
+
+NOTE: We exit from the C function before it can try to return to its caller function, we do so since we haven't "called" the function C from any function, there is no address for it to return to. If we try to return from the C function we might get segmentation error.
+
+NOTE: For this programme to work, we have to link the A.c C.c B.o files together using gcc, the exact commands can be found in the makefile.
+
+Thank You!
+Submitted By - Tanishk Goyal ( 2020141)
+
+
